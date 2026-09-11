@@ -1,0 +1,37 @@
+# Lint CI for mukoko-dev/.github.
+#
+# Calls the shared lint workflow in nyuchi/.github. That repository is
+# public, so a reusable workflow in it can be called from any repository
+# in any organisation — including private ones. This is the same wiring
+# bundu-labs and mzizi-dev already use, and it is deliberate: the org's
+# lint policy lives in exactly one place and is not copied per org.
+#
+# The job MUST be called `lint`. A reusable-workflow call publishes its
+# checks as "<caller job>/<called job>", which is what produces the five
+# contexts the mukoko-dev org ruleset requires:
+#
+#   lint / actionlint      lint / markdownlint
+#   lint / JSON validity   lint / yamllint
+#   lint / prettier
+#
+# Every repository in this org needs a file exactly like this one, or its
+# PRs can never merge.
+
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    uses: nyuchi/.github/.github/workflows/reusable-lint.yml@main

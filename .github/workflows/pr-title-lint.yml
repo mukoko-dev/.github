@@ -1,0 +1,23 @@
+# Conventional-Commits check on the PR title.
+#
+# Both org rulesets allow squash merges only, so the PR title becomes the
+# commit subject on main. Linting it here is what keeps main's history
+# machine-readable for release tooling.
+
+name: PR title
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  pull-requests: read
+  statuses: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    uses: nyuchi/.github/.github/workflows/reusable-pr-title-lint.yml@main
