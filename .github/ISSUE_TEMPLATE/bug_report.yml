@@ -8,7 +8,7 @@ body:
       value: |
         Thanks for taking the time to file a bug report.
 
-        For bugs in a specific `bundu-labs` repository, file the issue
+        For bugs in a Mukoko app or another `mukoko-dev` repository, file the issue
         on that repository instead.
 
   - type: checkboxes

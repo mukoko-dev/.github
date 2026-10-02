@@ -1,6 +1,6 @@
 # Code of Conduct
 
-All projects under the [`bundu-labs`](https://github.com/bundu-labs)
+All projects under the [`mukoko-dev`](https://github.com/mukoko-dev)
 GitHub organisation adopt the
 **[Contributor Covenant 2.1][cc]** as our code of conduct, mirroring
 the wider Nyuchi Africa policy at
@@ -13,7 +13,7 @@ responsibilities, and enforcement guidelines — is canonical at
 ## Scope
 
 This Code of Conduct applies within all community spaces tied to any
-`bundu-labs` repository — issues, pull requests, discussions, blogs,
+`mukoko-dev` repository — issues, pull requests, discussions, blogs,
 and any official representation at events or in correspondence — and
 when an individual is officially representing the project in public
 spaces.

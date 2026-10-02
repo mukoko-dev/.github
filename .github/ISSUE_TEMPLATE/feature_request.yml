@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Thanks for suggesting a change. For changes to a specific
-        `bundu-labs` repository, file on that repository instead.
+        `mukoko-dev` repository or Mukoko app, file on that repository instead.
 
   - type: checkboxes
     id: preflight

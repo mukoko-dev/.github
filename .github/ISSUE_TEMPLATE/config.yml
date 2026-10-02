@@ -4,8 +4,8 @@ contact_links:
     url: https://github.com/nyuchi/.github
     about: Conventional Commits, signed commits, DCO, reusable workflows.
   - name: Report a security vulnerability (private)
-    url: https://github.com/bundu-labs/.github/blob/main/SECURITY.md
+    url: https://github.com/mukoko-dev/.github/blob/main/SECURITY.md
     about: Do NOT open a public issue. Follow SECURITY.md to report privately.
   - name: General enquiry
     url: mailto:hi@nyuchi.com
-    about: For anything not specific to a repository under bundu-labs.
+    about: For anything not specific to a repository under mukoko-dev.
