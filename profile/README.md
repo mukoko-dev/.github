@@ -62,11 +62,12 @@ Barstool is folded into Mukoko Kweli.
 
 This organisation holds the Mukoko repositories: the Mukoko docs
 ([`mukoko`](https://github.com/mukoko-dev/mukoko)), `mukoko-api`,
-`mukoko-auth`, `kweli` and `kweli-mcp`, `mukoko-lingo`,
-`mukoko-circles`, `mukoko-home`, and the super apps `super-app-web`
-and `super-app-mobile`. Several live Mukoko apps (News, Weather,
-Events) are still in [`nyuchi`](https://github.com/nyuchi) and are
-planned to move here.
+`mukoko-auth`, `kweli` and `kweli-mcp`, Mukoko Weather
+(`mukoko-weather`, `mukoko-weather-mobile`), Nhimbe (`nhimbe`,
+`mukoko-events-admin`), `mukoko-lingo`, `mukoko-circles`,
+`mukoko-home`, and the super apps `super-app-web` and
+`super-app-mobile`. Mukoko News is still in
+[`nyuchi`](https://github.com/nyuchi) (`mukoko-news`).
 
 Mukoko's shared UI comes from Mzizi, the Bundu Foundation's design
 system, in [`mzizi-dev`](https://github.com/mzizi-dev).

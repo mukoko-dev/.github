@@ -7,7 +7,7 @@
 [![Lint](https://github.com/mukoko-dev/.github/actions/workflows/lint.yml/badge.svg)](https://github.com/mukoko-dev/.github/actions/workflows/lint.yml)
 
 **Workflow library:** [`nyuchi/.github`](https://github.com/nyuchi/.github/tree/main/.github/workflows)
-| **Active ruleset:** `org-wide-main-protection` | **Merge method:** squash or rebase (standard; rebase only until rolled out)
+| **Rulesets:** `enterprise-main-protection` and `org-wide-main-protection` | **Merge method:** squash or rebase
 
 ## The org profile and the Mukoko Manifesto
 
@@ -39,21 +39,28 @@ Only add a workflow file here when the behaviour genuinely differs from the
 shared one. If you ever do copy a reusable workflow into this org, say so in
 the PR and record why, so the divergence is deliberate and visible.
 
-What this repository does hold, in `.github/workflows/`, are three thin
-callers that also apply to this repository itself:
+What this repository does hold, in `.github/workflows/`, is the org-required
+lint workflow and three thin callers that also apply to this repository
+itself:
 
 | File                | Name       | Trigger                                                       |
 | ------------------- | ---------- | ------------------------------------------------------------- |
+| `org-lint.yml`      | `Org lint` | Every pull request in every `mukoko-dev` repository           |
 | `lint.yml`          | `Lint`     | Pull requests, and pushes to `main`/`master`/`scaffold`       |
 | `pr-title-lint.yml` | `PR title` | `pull_request_target` — opened, edited, reopened, synchronize |
 | `stale.yml`         | `Stale`    | Daily at 01:23 UTC, and `workflow_dispatch`                   |
 
 [hub]: https://github.com/nyuchi/.github/tree/main/.github/workflows
 
-## Every repository needs `lint.yml`
+## Lint is required org-wide
 
-The org ruleset `org-wide-main-protection` requires five status checks on the
-default branch of every repository:
+The org ruleset `org-wide-main-protection` has a "Require workflows to pass"
+rule naming
+[`.github/workflows/org-lint.yml`](.github/workflows/org-lint.yml) in this
+repository, so GitHub runs it on every pull request in every `mukoko-dev`
+repository. Its job is named `lint` and calls `nyuchi/.github`'s
+`reusable-lint.yml`, so it publishes the five status checks the same ruleset
+requires:
 
 ```text
 lint / actionlint
@@ -63,17 +70,14 @@ lint / markdownlint
 lint / yamllint
 ```
 
-Those names are not free-form. A job that calls a reusable workflow publishes
-its checks as `<caller job> / <called job>`, so the five strings above are
-produced by a job named exactly `lint` calling `reusable-lint.yml`, whose own
-jobs are named `actionlint`, `JSON validity`, and so on.
+A repository therefore needs **no `lint.yml` of its own and no lint config
+files**. A repository that already has a `lint.yml` caller may keep it; the
+org-required run is what the ruleset counts.
 
-Defining the five as ordinary top-level jobs does **not** work. They then
-report as bare `actionlint`, `JSON validity`, … , the five required contexts
-never report at all, and a required context that never reports is
-permanently pending — every pull request in the repository is blocked
-forever, with every visible check green. Copy
-[`.github/workflows/lint.yml`](.github/workflows/lint.yml) verbatim.
+Those names are not free-form. A job that calls a reusable workflow publishes
+its checks as `<caller job> / <called job>`. A matrix, or five ordinary
+top-level jobs, would publish different names, and a required context that
+never reports leaves every pull request pending forever.
 
 ## Per-repository CI
 
@@ -102,27 +106,37 @@ Also in the library, for repositories that want them: `reusable-release.yml`,
 ## Lint configuration
 
 `.prettierrc`, `.prettierignore`, `.markdownlint.jsonc`, `.yamllint.yaml` and
-`.editorconfig` in this repository are the org baseline. The lint tools
-auto-discover them from the repository root, so copy them into each
-repository rather than pointing at these.
+`.editorconfig` in this repository are this repository's own copies. A
+repository does not need them: where a repository has its own `.prettierrc`,
+`.prettierignore`, `.markdownlint.jsonc` or `.yamllint.yaml` at its root, the
+reusable workflow uses it; where it does not, it falls back to the canonical
+copy in [`nyuchi/.github`](https://github.com/nyuchi/.github). Add one only
+when a repository genuinely needs to differ.
 
 Two adjustments come up often:
 
 - **`.yamllint.yaml` must ignore your lockfile.** `pnpm-lock.yaml` has lines
   far past any sane width, and the reusable runs `yamllint -s`, which
   promotes warnings to errors.
-- **Prettier and `.mdx` do not mix.** Prettier still parses `.mdx` with its
-  legacy MDX1 parser and rewrites MDX2 expression comments — `{/* … */}`
-  becomes `{/_ … _/}` — corrupting the file. If a repository has `.mdx`
-  content, pass a `prettier-glob` that excludes it.
+- **Prettier and `.mdx` do not mix.** Prettier rewrites MDX2 expression
+  comments — `{/* … */}` becomes `{/_ … _/}` — corrupting the file. If a
+  repository has `.mdx` content, give it a `.prettierignore` that excludes
+  it.
 
 ## Merge method and branch protection
 
-The branch-protection standard for `nyuchi`, `mukoko-dev` and `mzizi-dev` is
-in [`nyuchi/.github` → `ORG_SETTINGS.md`](https://github.com/nyuchi/.github/blob/main/ORG_SETTINGS.md).
-Under it, `org-wide-main-protection` is identical in all three orgs and
-applies to the default branch of every repository except `sandbox-*` and
-`archive-*`:
+The branch-protection standard is in
+[`nyuchi/.github` → `ORG_SETTINGS.md`](https://github.com/nyuchi/.github/blob/main/ORG_SETTINGS.md).
+Two rulesets apply to the default branch of every repository here except
+`sandbox-*` and `archive-*`.
+
+**`enterprise-main-protection`**, from the `bundu-labs` enterprise, is
+**active** in every org: changes land by pull request with **0** required
+approvals, linear history, no force pushes, no deletion. It carries no status
+checks.
+
+**`org-wide-main-protection`**, this org's own ruleset, repeats that floor and
+adds the checks:
 
 | Rule                      | Effect                                                                                                                                                                                                              |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -131,23 +145,17 @@ applies to the default branch of every repository except `sandbox-*` and
 | `required_linear_history` | No merge commits reach the default branch                                                                                                                                                                           |
 | `pull_request`            | Changes land by PR, with **squash or rebase**. Review threads must be resolved. `required_approving_review_count` is **0**; stale reviews are not dismissed on push and unattributed changes need no extra approval |
 | `required_status_checks`  | The five lint checks above. Strict — the branch must be up to date with the base                                                                                                                                    |
+| `workflows`               | `mukoko-dev/.github/.github/workflows/org-lint.yml` must run and pass on every pull request                                                                                                                         |
 
-Organisation admins can bypass it. A repository may add one ruleset of its
+Organisation admins can bypass both. A repository may add one ruleset of its
 own, named `repo-ci`, holding only its own CI checks; it never repeats these
 rules or narrows the merge methods. Classic branch protection is not used.
 
-**Until the standard is rolled out**, the live ruleset here differs: it is
-**rebase only**, dismisses stale reviews on push and asks for an extra
-approval on unattributed changes. Every repository in this org also has
-`allow_squash_merge: false` in its settings, so squash stays unavailable
-until those settings are changed too. Use rebase in the meantime.
+Repository settings still decide which merge buttons appear: `campfire` and
+`mukoko-openapi` have squash merging switched off, so use rebase there.
 
 There is **no `required_signatures` rule.** Commits do not need to be signed
 to merge.
-
-A second ruleset, `enterprise-main-protection`, arrives from the `bundu-labs`
-enterprise. It is in **evaluate** mode — it reports what it would have done
-and blocks nothing.
 
 ## Licence
 
