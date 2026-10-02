@@ -22,6 +22,13 @@ their owners' `.github` repositories:
 (which wins wherever documents disagree) and
 [the Bundu Order](https://github.com/bundu-labs/.github/blob/main/profile/canonical/BUNDU_ORDER.md).
 
+## Community-health defaults
+
+`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `SUPPORT.md`, the PR
+template and the issue forms in `.github/` apply to every `mukoko-dev`
+repository that does not ship its own. `.github/CODEOWNERS` and
+`.github/dependabot.yml` apply to this repository only.
+
 ## CI is not written here
 
 The reusable workflow library lives in [`nyuchi/.github`][hub] and is shared

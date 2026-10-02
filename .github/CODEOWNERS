@@ -1,0 +1,7 @@
+# CODEOWNERS for mukoko-dev/.github
+#
+# Default owner for everything in this org-defaults repo. Review from
+# code owners is not required by the rulesets during the solo-developer
+# phase; this file routes review requests and Dependabot PRs.
+
+* @bryanfawcett
