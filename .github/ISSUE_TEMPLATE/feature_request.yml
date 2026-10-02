@@ -1,0 +1,53 @@
+name: Feature / change request
+description: Propose a change to the org-wide defaults.
+title: 'feat: '
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a change. For changes to a specific
+        `bundu-labs` repository, file on that repository instead.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight checks
+      options:
+        - label: I searched existing issues and discussions; this is not a duplicate.
+          required: true
+        - label: This is a concrete proposal, not an open-ended idea.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - Small (config tweak, copy fix)
+        - Medium (new file or section)
+        - Large (new ruleset, workflow, or governance change)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: conduct
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I agree to follow this project's [Code of Conduct](../../blob/main/CODE_OF_CONDUCT.md).
+          required: true
