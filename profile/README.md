@@ -65,9 +65,10 @@ This organisation holds the Mukoko repositories: the Mukoko docs
 `mukoko-auth`, `kweli` and `kweli-mcp`, Mukoko Weather
 (`mukoko-weather`, `mukoko-weather-mobile`), Nhimbe (`nhimbe`,
 `mukoko-events-admin`), `mukoko-lingo`, `mukoko-circles`,
-`mukoko-home`, and the super apps `super-app-web` and
-`super-app-mobile`. Mukoko News is still in
-[`nyuchi`](https://github.com/nyuchi) (`mukoko-news`).
+`mukoko-home`, Mukoko News (`mukoko-news`, `mukoko-news-gateway`,
+`mukoko-ingestion-pipeline`), `mukoko-events-mcp`, `bushtrade`,
+`nyuchi-identity`, and the super apps `super-app-web` and
+`super-app-mobile`.
 
 Mukoko's shared UI comes from Mzizi, the Bundu Foundation's design
 system, in [`mzizi-dev`](https://github.com/mzizi-dev).
