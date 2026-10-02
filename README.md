@@ -7,7 +7,20 @@
 [![Lint](https://github.com/mukoko-dev/.github/actions/workflows/lint.yml/badge.svg)](https://github.com/mukoko-dev/.github/actions/workflows/lint.yml)
 
 **Workflow library:** [`nyuchi/.github`](https://github.com/nyuchi/.github/tree/main/.github/workflows)
-| **Active ruleset:** `org-wide-main-protection` | **Merge method:** rebase only
+| **Active ruleset:** `org-wide-main-protection` | **Merge method:** squash or rebase (standard; rebase only until rolled out)
+
+## The org profile and the Mukoko Manifesto
+
+| Path                                                                             | Purpose                                                                                                                                         |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`profile/README.md`](profile/README.md)                                         | The page shown at <https://github.com/mukoko-dev>.                                                                                              |
+| [`profile/canonical/MUKOKO_MANIFESTO.md`](profile/canonical/MUKOKO_MANIFESTO.md) | **The Mukoko Manifesto v5.0.0** (October 2026), the Founder's text, unedited. Exempt from Prettier and markdownlint so it is never reformatted. |
+
+The Manifesto is one of three canonical documents. The other two live in
+their owners' `.github` repositories:
+[the Nyuchi Architecture](https://github.com/nyuchi/.github/blob/main/profile/canonical/NYUCHI_ARCHITECTURE.md)
+(which wins wherever documents disagree) and
+[the Bundu Order](https://github.com/bundu-labs/.github/blob/main/profile/canonical/BUNDU_ORDER.md).
 
 ## CI is not written here
 
@@ -105,27 +118,31 @@ Two adjustments come up often:
 
 ## Merge method and branch protection
 
-**Rebase only.** `org-wide-main-protection` sets
-`allowed_merge_methods: ["rebase"]`, and the repository settings agree with it:
-every repository in this org has `allow_squash_merge: false`,
-`allow_merge_commit: false`, `allow_rebase_merge: true` and
-`allow_auto_merge: true`. Squash and merge-commit are off in both places.
+The branch-protection standard for `nyuchi`, `mukoko-dev` and `mzizi-dev` is
+in [`nyuchi/.github` → `ORG_SETTINGS.md`](https://github.com/nyuchi/.github/blob/main/ORG_SETTINGS.md).
+Under it, `org-wide-main-protection` is identical in all three orgs and
+applies to the default branch of every repository except `sandbox-*` and
+`archive-*`:
 
-Alongside the five required checks, the ruleset applies:
+| Rule                      | Effect                                                                                                                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `deletion`                | The default branch cannot be deleted                                                                                                                                                                                |
+| `non_fast_forward`        | No force pushes                                                                                                                                                                                                     |
+| `required_linear_history` | No merge commits reach the default branch                                                                                                                                                                           |
+| `pull_request`            | Changes land by PR, with **squash or rebase**. Review threads must be resolved. `required_approving_review_count` is **0**; stale reviews are not dismissed on push and unattributed changes need no extra approval |
+| `required_status_checks`  | The five lint checks above. Strict — the branch must be up to date with the base                                                                                                                                    |
 
-| Rule                      | Effect                                                                                                                                                                                |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `deletion`                | The default branch cannot be deleted                                                                                                                                                  |
-| `non_fast_forward`        | No force pushes                                                                                                                                                                       |
-| `required_linear_history` | No merge commits reach the default branch                                                                                                                                             |
-| `pull_request`            | Changes land by PR. Stale reviews are dismissed on push, review threads must be resolved, and unattributed changes need an extra approval. `required_approving_review_count` is **0** |
-| `required_status_checks`  | Strict — the branch must be up to date with the base                                                                                                                                  |
+Organisation admins can bypass it. A repository may add one ruleset of its
+own, named `repo-ci`, holding only its own CI checks; it never repeats these
+rules or narrows the merge methods. Classic branch protection is not used.
 
-It applies to the default branch of every repository except `sandbox-*` and
-`archive-*`.
+**Until the standard is rolled out**, the live ruleset here differs: it is
+**rebase only**, dismisses stale reviews on push and asks for an extra
+approval on unattributed changes. Every repository in this org also has
+`allow_squash_merge: false` in its settings, so squash stays unavailable
+until those settings are changed too. Use rebase in the meantime.
 
-There is **no `required_signatures` rule.** An earlier version of this
-document said there was; there is not, and commits do not need to be signed
+There is **no `required_signatures` rule.** Commits do not need to be signed
 to merge.
 
 A second ruleset, `enterprise-main-protection`, arrives from the `bundu-labs`
