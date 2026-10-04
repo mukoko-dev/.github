@@ -33,7 +33,7 @@ which wins wherever two documents disagree.
 | Product                    | Where                                              | Status |
 | -------------------------- | -------------------------------------------------- | ------ |
 | Mukoko Account (Mukoko ID) | [accounts.mukoko.com](https://accounts.mukoko.com) | Live   |
-| Nhimbe (Mukoko Events)     | [events.mukoko.com](https://events.mukoko.com)     | Live   |
+| Mukoko Events              | [events.mukoko.com](https://events.mukoko.com)     | Live   |
 | Mukoko News                | [news.mukoko.com](https://news.mukoko.com)         | Live   |
 | Mukoko Weather             | [weather.mukoko.com](https://weather.mukoko.com)   | Live   |
 | Mukoko Kweli (Places)      | [kweli.mukoko.com](https://kweli.mukoko.com)       | Live   |
@@ -63,12 +63,12 @@ Barstool is folded into Mukoko Kweli.
 This organisation holds the Mukoko repositories: the Mukoko docs
 ([`mukoko`](https://github.com/mukoko-dev/mukoko)), `mukoko-api`,
 `mukoko-auth`, `kweli` and `kweli-mcp`, Mukoko Weather
-(`mukoko-weather`, `mukoko-weather-mobile`), Nhimbe (`nhimbe`,
-`mukoko-events-admin`), `mukoko-lingo`, `mukoko-circles`,
-`mukoko-home`, Mukoko News (`mukoko-news`, `mukoko-news-gateway`,
-`mukoko-ingestion-pipeline`), `mukoko-events-mcp`, `bushtrade`,
-`nyuchi-identity`, and the super apps `super-app-web` and
-`super-app-mobile`.
+(`mukoko-weather`, `mukoko-weather-mobile`), Mukoko Events
+(`mukoko-events`, formerly `nhimbe`, `mukoko-events-admin`),
+`mukoko-lingo`, `mukoko-circles`, `mukoko-home`, Mukoko News
+(`mukoko-news`, `mukoko-news-gateway`, `mukoko-ingestion-pipeline`),
+`mukoko-events-mcp`, `bushtrade`, `nyuchi-identity`, and the super apps
+`super-app-web` and `super-app-mobile`.
 
 Mukoko's shared UI comes from Mzizi, the Bundu Foundation's design
 system, in [`mzizi-dev`](https://github.com/mzizi-dev).

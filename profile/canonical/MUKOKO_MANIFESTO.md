@@ -16,9 +16,10 @@
 | Section | Change |
 |---|---|
 | Throughout | Written for the platform that exists and the one being built, with the line between them drawn in the open. Where a promise's architectural proof is still under construction, the text says so. |
+| Throughout (4 Oct 2026) | The events platform is **Mukoko Events** at events.mukoko.com. *Nhimbe* is retired as a brand name; the word keeps its meaning, the Shona communal work gathering the product grew out of. |
 | Subtitle | "Your Twin. Your Sovereignty. Your Honey." → "Your Identity. Your Sovereignty. Your Honey." Identity is what we deliver today; the Twin is what it grows into. |
-| § 02 The Answer | Names what is live: Mukoko Account, Nhimbe (Mukoko Events), Mukoko News, Mukoko Weather, Mukoko Kweli. |
-| § 03 The Fire | Campfire remains the anchor of the design and is honestly marked as not yet built. Gathering — Nhimbe — is where the fire is lit first. |
+| § 02 The Answer | Names what is live: Mukoko Account, Mukoko Events, Mukoko News, Mukoko Weather, Mukoko Kweli. |
+| § 03 The Fire | Campfire remains the anchor of the design and is honestly marked as not yet built. Gathering — Mukoko Events — is where the fire is lit first. |
 | § 04 Your Twin | Reframed as the destination, not the first stone. Prerequisites named. |
 | § 05 The Four Pillars | Rewritten for v5 technology: MongoDB, SiafuDB, WorkOS, Mzizi, and Rust underneath every surface — Astro on the web, native UI on each phone platform. Open Source & Sovereign now states plainly that not everything we run is open source. |
 | § 06 Ubuntu | Adds the Bundu doctrine: the Five Pillars of belonging and the Five Principles of practised value. |
@@ -87,7 +88,7 @@ This tri-mode rule is recursive. It governs every app, every piece of infrastruc
 **Here is what you can use today.**
 
 **Mukoko Account** — one login for the whole ecosystem. Sign in once; everything follows.
-**Nhimbe, Mukoko Events** — discover, host, and grow community gatherings across African cities, with RSVPs that never oversell a room, QR check-in, and circles that keep people connected between events.
+**Mukoko Events** — discover, host, and grow community gatherings across African cities, with RSVPs that never oversell a room, QR check-in, and circles that keep people connected between events.
 **Mukoko News** — hundreds of African newsrooms in one place, with every one of the 54 African Union states in scope and live coverage measured, not claimed.
 **Mukoko Weather** — weather that answers the question most weather apps skip: given this weather, can I do the thing I need to do today? Planting, spraying, open-pit work, a long drive, a match.
 **Mukoko Kweli** — the Africa Trust Platform. One canonical, verified page for every place in the graph, from a national park to a street vendor, with a trust score that travels across the ecosystem.
@@ -102,11 +103,11 @@ The rest of the seventeen are designed and coming. The difference between a supe
 
 Most super apps are content feeds that bolted on messaging. Mukoko's design inverts this. Messaging is infrastructure, and everything else flows into and out of it.
 
-Campfire is the architectural anchor of the design: private chats, group threads, community channels, and the place where every cross-platform event arrives. A booking confirmed in BushTrade, a reminder from Nhimbe, a payment request from Wallet, a reply from Shamwari — in the finished hive, they all arrive in Campfire.
+Campfire is the architectural anchor of the design: private chats, group threads, community channels, and the place where every cross-platform event arrives. A booking confirmed in BushTrade, a reminder from Mukoko Events, a payment request from Wallet, a reply from Shamwari — in the finished hive, they all arrive in Campfire.
 
 **Campfire is not built yet.** We say that plainly because a fire you describe but have not lit keeps no one warm.
 
-So the fire is lit first where people already gather. Nhimbe takes its name from the Shona *nhimbe* — the communal work gathering where neighbours come together to get something done and share in the harvest. Together we gather, together we grow. Nhimbe is live, and inside it, Circles already keep people connected between gatherings. When Campfire comes, it will carry the conversations Nhimbe has started.
+So the fire is lit first where people already gather. Mukoko Events grew out of the Shona *nhimbe* — the communal work gathering where neighbours come together to get something done and share in the harvest. Together we gather, together we grow. Mukoko Events is live, and inside it, Circles already keep people connected between gatherings. When Campfire comes, it will carry the conversations Mukoko Events has started.
 
 The communal fire is where African communities have always gathered. Stories were told there. Decisions were made there. Ubuntu was *lived* there.
 
@@ -121,12 +122,12 @@ MUKOKO SUPER APP — 17 Mini-Apps
 🎬 Bytes            — Creator Video      🌤 Weather          — Environment
 🔵 Circles          — Community          💰 Wallet           — Economics
 📚 Novels           — Publishing         💼 Jobs             — Employment
-🥁 Nhimbe           — Gathering          🏥 Health           — Wellness
+🥁 Events           — Gathering          🏥 Health           — Wellness
 🛒 BushTrade        — Commerce           🆔 Mukoko ID        — Identity
 📍 Places           — Geography
 ```
 
-The Weather inside a Nhimbe listing is real because the Weather service is live. The place on an event page is a Kweli place with a verified identity. This is how one coherent world begins: not with seventeen apps at once, but with the first few already talking to each other.
+The Weather inside a Mukoko Events listing is real because the Weather service is live. The place on an event page is a Kweli place with a verified identity. This is how one coherent world begins: not with seventeen apps at once, but with the first few already talking to each other.
 
 ---
 
@@ -171,7 +172,7 @@ Every architectural decision flows from four pillars. They are constraints befor
 
 **Mobile-First.** Small screens, limited battery, constrained data, budget hardware. Our live apps are installable, fast, and built to the strictest accessibility standard we know (AAA contrast, 48-pixel touch targets). Underneath every surface we are building one core in Rust — the database, the sync, the safety gates, the cryptography — written once and carried everywhere. On top of it, each surface speaks its own language: Astro on the web, Swift on iOS, Kotlin on Android, ArkTS on HarmonyOS. Native interfaces, so that no single company controls the runtime of Africa's digital future; one Rust core, so that the guarantees are identical on every one of them. Until the native apps arrive, we ship to the web, where every phone already is.
 
-**Open Source & Sovereign.** We build on ground that no corporation can pull from under us — and where we cannot yet, we say so and name the way out. Our frontier infrastructure is open: SiafuDB, SiafuDB-Kuzu and NTL under Apache 2.0; Nhimbe and Mukoko Weather under MIT; Zimbabwe's travel guide under Creative Commons. **Not everything we run is open source, and that is a decision, not an accident.** Our data runs on MongoDB Atlas and Supabase. Identity runs on WorkOS. Our apps are hosted on Vercel and Cloudflare. Shamwari currently thinks with a model we did not train. Each of these sits in a published sovereignty register with a risk tier and an exit path. Flutter, Couchbase, and Databricks remain prohibited.
+**Open Source & Sovereign.** We build on ground that no corporation can pull from under us — and where we cannot yet, we say so and name the way out. Our frontier infrastructure is open: SiafuDB, SiafuDB-Kuzu and NTL under Apache 2.0; Mukoko Events and Mukoko Weather under MIT; Zimbabwe's travel guide under Creative Commons. **Not everything we run is open source, and that is a decision, not an accident.** Our data runs on MongoDB Atlas and Supabase. Identity runs on WorkOS. Our apps are hosted on Vercel and Cloudflare. Shamwari currently thinks with a model we did not train. Each of these sits in a published sovereignty register with a risk tier and an exit path. Flutter, Couchbase, and Databricks remain prohibited.
 
 **Open Data.** Platform-level, anonymised, aggregate data is not Mukoko's moat. It is Mukoko's gift to Africa. Researchers, journalists, governments, NGOs, and developers should be able to ask what the community collectively knows. The first gift is already flowing: weather observations from community stations are validated and published onward to the open forecasting commons, and the Zimbabwe travel guide is free for anyone to reuse. The commons we are building — Apache Flink stripping every trace of personal data, Apache Doris holding what remains — will make the interface to Africa's knowledge a conversation, not a query language.
 
@@ -204,7 +205,7 @@ The questions are the gate. Behind them stands a doctrine the Bundu Foundation k
 
 **The Five Pillars of Ubuntu** are the spheres a person exists within: **Family** (*Mhuri*), **Community** (*Nharaunda*), **Society** (*Vanhu*), **Environment** (*Zvakatipoteredza*), and **Spirituality** (*Unhu*). Ubuntu begins in the household, widens to neighbours, extends to every stranger, is held by the natural world, and is given meaning by the sacred. Each sphere shapes a part of the platform — from account switching on a family's shared phone, to offline-first design that respects the environment and the budget handset, to memorial states for those who have passed.
 
-**The Five Principles of Ubuntu** are the values a person practises within those spheres: **Survival** (*Kurarama*), **Solidarity** (*Kubatana*), **Compassion** (*Tsitsi*), **Respect** (*Ruremekedzo*), and **Dignity** (*Chiremerera*). Survival is why our apps work on 2G. Solidarity is Nhimbe and Circles. Compassion is a welcome that does not punish people for the device they own. Respect is a second language that is never second-class. Dignity is no dark patterns, ever.
+**The Five Principles of Ubuntu** are the values a person practises within those spheres: **Survival** (*Kurarama*), **Solidarity** (*Kubatana*), **Compassion** (*Tsitsi*), **Respect** (*Ruremekedzo*), and **Dignity** (*Chiremerera*). Survival is why our apps work on 2G. Solidarity is Mukoko Events and Circles. Compassion is a welcome that does not punish people for the device they own. Respect is a second language that is never second-class. Dignity is no dark patterns, ever.
 
 The Ubuntu Layer will also be a living system. Seven contribution types — content creation, review, verification, moderation, translation, curation, mentorship — are the seven ways a person strengthens the community. Contributions build reputation through graph analysis of how they ripple outward, not just how many there are. Reputation earns voice in governance, and governance flows to sustained commitment rather than to money.
 
@@ -246,7 +247,7 @@ Manifestos are easy to write. The harder thing is specificity — and the hardes
 
 **Covenant Four: We will never abandon African creators.**
 
-*The Sign:* The creator economy is designed so that creators keep 80% or more of what they earn, co-authors split revenue automatically, and video creators own their content. Event hosts on Nhimbe keep their audiences and their communities.
+*The Sign:* The creator economy is designed so that creators keep 80% or more of what they earn, co-authors split revenue automatically, and video creators own their content. Event hosts on Mukoko Events keep their audiences and their communities.
 
 *The Consequence:* Creator economics will be embedded in code, not policy, so that the split cannot be quietly changed. The community can vote to adjust it through governance — but the commitment to a majority creator share is structural.
 
@@ -254,7 +255,7 @@ Manifestos are easy to write. The harder thing is specificity — and the hardes
 
 **Covenant Five: We will never choose proprietary technology when open source is adequate.**
 
-*The Sign:* The frontier infrastructure we write is open: SiafuDB, SiafuDB-Kuzu, and NTL under Apache 2.0; Nhimbe, Mukoko Weather, and our tools under MIT; the Zimbabwe travel guide under Creative Commons. Public by default, private only when necessary.
+*The Sign:* The frontier infrastructure we write is open: SiafuDB, SiafuDB-Kuzu, and NTL under Apache 2.0; Mukoko Events, Mukoko Weather, and our tools under MIT; the Zimbabwe travel guide under Creative Commons. Public by default, private only when necessary.
 
 *The word that matters is* adequate. Where we run proprietary or source-available technology — MongoDB Atlas, WorkOS, Vercel, Cloudflare, the model behind Shamwari — it is because no open alternative was adequate for us yet, at our size and with our team. Every one is recorded in a published sovereignty register with a risk tier and an exit path. Some of our code is private, because it holds security, customer data handling, or commercial advantage. Most is not.
 
@@ -296,7 +297,7 @@ We reject surveillance capitalism. We reject the attention economy. We reject da
 **Enterprise partnerships** — Nyuchi products and API access for African businesses.
 **Token economy** — minimal, transparent fees on token exchanges.
 
-**The first fire to earn its keep is the gathering.** Nhimbe is where our revenue begins: tools for organisers, fair per-ticket fees, and payments that work for the informal and community events the incumbents ignore — the church fundraiser, the township football tournament, the nhimbe itself. We dropped NFT ticketing; it solved a problem our communities do not have.
+**The first fire to earn its keep is the gathering.** Mukoko Events is where our revenue begins: tools for organisers, fair per-ticket fees, and payments that work for the informal and community events the incumbents ignore — the church fundraiser, the township football tournament, the nhimbe itself. We dropped NFT ticketing; it solved a problem our communities do not have.
 
 The MUKOKO economic system is designed as four tokens, all issued and governed by the **Bundu Foundation**.
 
@@ -348,7 +349,7 @@ Mukoko does not stand alone. It is one of three pillars of an ecosystem.
 
 **Nyuchi Africa** operates everything that runs — identity, the API gateway, the databases, the pipelines, the edge — and builds the enterprise products: an open and growing set of doors into the ecosystem. Today they include the Nyuchi API Platform, Web Services, Learning, Medical, Logistics, Tools, Pay, Masasa, and StationKit, the solar-powered weather and soil station built for African smallholder farms. A doctor on Nyuchi Medical and a patient on Mukoko Health will be in the same world, connected through the same Mukoko Account.
 
-**Mukoko** is the surface people live in — seventeen mini-apps, all drawing from the same geographic knowledge graph that Mukoko Kweli verifies. Kweli has grown out of Barstool: what began as reviews of bars and restaurants is now the trust page for every place in Africa, from a national park to a street vendor. A place verified once in Kweli carries its trust everywhere. An event on Nhimbe shows weather from Mukoko Weather. A station in a farmer's field improves the forecast for the whole district.
+**Mukoko** is the surface people live in — seventeen mini-apps, all drawing from the same geographic knowledge graph that Mukoko Kweli verifies. Kweli has grown out of Barstool: what began as reviews of bars and restaurants is now the trust page for every place in Africa, from a national park to a street vendor. A place verified once in Kweli carries its trust everywhere. An event on Mukoko Events shows weather from Mukoko Weather. A station in a farmer's field improves the forecast for the whole district.
 
 Every surface in the hive shares the same forty interest categories, the same identity, the same design system, the same Ubuntu doctrine, and the same commitment to African sovereignty.
 
@@ -368,9 +369,9 @@ The vision is not a timeline. It is a covenant escalation — each stage broader
 
 **Stage 2 — The Conversation.** Campfire. Relational sovereignty. People communicating on infrastructure they trust.
 
-**Stage 3 — The Circle.** Circles. Community sovereignty. The persistent social fabric — already forming around Nhimbe's gatherings.
+**Stage 3 — The Circle.** Circles. Community sovereignty. The persistent social fabric — already forming around Mukoko Events' gatherings.
 
-**Stage 4 — The Gathering.** Nhimbe. Physical convergence. Where the digital platform produces physical community — events, festivals, meetups, ceremonies, the nhimbe itself. This is where the fire is lit first.
+**Stage 4 — The Gathering.** Mukoko Events. Physical convergence. Where the digital platform produces physical community — events, festivals, meetups, ceremonies, the nhimbe itself. This is where the fire is lit first.
 
 **Stage 5 — The Market.** BushTrade and Wallet. Economic sovereignty. Commerce and exchange without routing through Western institutions, on mobile money, across 54 countries.
 
@@ -393,7 +394,7 @@ If you are tired of building your digital life on someone else's terms —
 If Ubuntu resonates with how you see the world —
 If you want to build something that will outlast you —
 
-**Join us.** Host a gathering on Nhimbe. Read Africa's news in one place. Check whether today is a day to plant. Verify your business on Kweli. Put a station in your field. Contribute to the open code.
+**Join us.** Host a gathering on Mukoko Events. Read Africa's news in one place. Check whether today is a day to plant. Verify your business on Kweli. Put a station in your field. Contribute to the open code.
 
 The bees do not compete with each other. They build the hive. Then they fill it with honey.
 
