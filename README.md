@@ -107,6 +107,12 @@ first run, switch CodeQL **default** setup off in the repository, or GitHub
 rejects the results; a private repository also needs GitHub Code Security
 for dependency review and CodeQL.
 
+**The commit layer.** [`.pre-commit-config.yaml`](.pre-commit-config.yaml)
+runs gitleaks, actionlint, yamllint and markdownlint on staged files before
+each commit (`pre-commit install` once per clone). Linter versions match
+the ones CI pins. Any repository can copy it and add hooks for its own
+languages. It is a local convenience; the CI checks above stay the gate.
+
 **Who can call them.** This repository is **public**, so any repository in
 any organisation can call these workflows, private callers included:
 `mukoko-dev`, `mzizi-dev`, `bundu-labs` and `nyuchi` alike. What does
