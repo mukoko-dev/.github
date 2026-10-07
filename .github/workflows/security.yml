@@ -1,0 +1,32 @@
+# This repository's own shift-left security, and the test of the reusable
+# workflows it publishes: it calls them by LOCAL path, so a pull request that
+# changes one runs the changed version. Other repositories call them at
+# mukoko-dev/.github/...@main (see workflow-templates/security.yml).
+#
+# There is no dependency audit here: this repository has no Cargo.toml and
+# no JS lockfile, and the audit fails on purpose when it has nothing to
+# audit. There is no CodeQL job either: CodeQL default setup is on for this
+# repository and already scans its workflows, and GitHub rejects
+# advanced-setup results while default setup is on.
+
+name: Security
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+  merge_group:
+  schedule:
+    - cron: '41 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  dependency-review:
+    uses: ./.github/workflows/reusable-dependency-review.yml

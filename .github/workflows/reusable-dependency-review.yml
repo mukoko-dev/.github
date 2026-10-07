@@ -1,0 +1,112 @@
+# Reusable workflow: dependency review on pull requests (mzizi-dev/mzizi#62,
+# the CI layer of shift-left security).
+#
+# Fails a pull request that ADDS a dependency with a known advisory at or
+# above `fail-on-severity`. It compares GitHub's dependency graph for the
+# base and head commits, so it covers every ecosystem the graph understands
+# (Cargo, npm, pnpm, Yarn, pip, uv, Poetry, Go, Actions, ...) at once and
+# needs no ecosystem or path input: a change anywhere in the repository is
+# reviewed.
+#
+# Call it from a workflow in the consuming repository:
+#
+#   on:
+#     pull_request:
+#     merge_group:
+#   permissions:
+#     contents: read
+#   jobs:
+#     dependency-review:
+#       uses: mukoko-dev/.github/.github/workflows/reusable-dependency-review.yml@main
+#
+# That publishes the check `dependency-review / dependency review`.
+#
+# On any event other than pull_request and merge_group the job passes with a
+# notice: there is no base to compare, and a required check that never
+# reports would block the PR forever. Use reusable-dependency-audit.yml for
+# push and schedule runs.
+#
+# The token is read-only. The summary goes to the job summary, never a PR
+# comment, so the caller grants only `contents: read` and the workflow also
+# works on pull requests from forks.
+#
+# A PRIVATE repository needs the dependency graph enabled and GitHub Code
+# Security (Advanced Security) for the dependency-review API; without it the
+# action fails with a 403/"not enabled" error.
+
+name: Reusable / Dependency review
+
+on:
+  workflow_call:
+    inputs:
+      fail-on-severity:
+        description: Lowest advisory severity that fails the PR (low, moderate, high, critical).
+        type: string
+        default: low
+      fail-on-scopes:
+        description: Dependency scopes that can fail the PR (runtime, development, unknown).
+        type: string
+        default: runtime, development
+      allow-ghsas:
+        description: Comma-separated GHSA IDs to accept anyway. Prefer fixing; record why in the caller.
+        type: string
+        default: ''
+      config-file:
+        description: >-
+          Optional path, in the calling repository, to a dependency-review-action
+          config file (licence allow/deny lists and the like). Empty means none.
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    name: dependency review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Resolve the range to review
+        id: range
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          MG_BASE: ${{ github.event.merge_group.base_sha }}
+          MG_HEAD: ${{ github.event.merge_group.head_sha }}
+        run: |
+          set -euo pipefail
+          case "$EVENT" in
+            pull_request|pull_request_target) base=$PR_BASE head=$PR_HEAD ;;
+            merge_group) base=$MG_BASE head=$MG_HEAD ;;
+            *)
+              echo "::notice::Dependency review compares a pull request with its base; nothing to do on '$EVENT'."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
+          for sha in "$base" "$head"; do
+            [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::Unexpected commit id '$sha'."; exit 1; }
+          done
+          { echo "base=$base"; echo "head=$head"; echo "skip=false"; } >> "$GITHUB_OUTPUT"
+
+      # Only a local config file needs the repository on disk.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        if: steps.range.outputs.skip == 'false' && inputs.config-file != ''
+        with:
+          persist-credentials: false
+
+      # actions/dependency-review-action ships semver tags only (no rolling @v5).
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294  # v5.0.0
+        if: steps.range.outputs.skip == 'false'
+        with:
+          base-ref: ${{ steps.range.outputs.base }}
+          head-ref: ${{ steps.range.outputs.head }}
+          fail-on-severity: ${{ inputs.fail-on-severity }}
+          fail-on-scopes: ${{ inputs.fail-on-scopes }}
+          allow-ghsas: ${{ inputs.allow-ghsas }}
+          config-file: ${{ inputs.config-file }}
+          comment-summary-in-pr: never
