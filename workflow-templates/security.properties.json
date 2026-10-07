@@ -1,0 +1,6 @@
+{
+  "name": "Shift-left security",
+  "description": "Dependency review on PRs, a cargo deny / osv-scanner audit per ecosystem, and CodeQL. Calls the reusable workflows in mukoko-dev/.github.",
+  "iconName": "octicon shield-check",
+  "categories": ["Code Scanning", "Rust", "JavaScript", "TypeScript"]
+}

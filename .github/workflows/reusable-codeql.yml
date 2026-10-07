@@ -1,0 +1,181 @@
+# Reusable workflow: CodeQL static analysis (mzizi-dev/mzizi#62, the CI layer
+# of shift-left security), as an advanced setup a repository calls.
+#
+# Call it from a workflow in the consuming repository:
+#
+#   on:
+#     push:
+#       branches: [main, staging]
+#     pull_request:
+#     schedule:
+#       - cron: '27 5 * * 1'
+#   permissions:
+#     contents: read
+#   jobs:
+#     codeql:
+#       uses: mukoko-dev/.github/.github/workflows/reusable-codeql.yml@main
+#       permissions:
+#         actions: read
+#         contents: read
+#         security-events: write
+#       with:
+#         languages: rust, javascript-typescript, actions
+#         paths-ignore: |
+#           **/fixtures/**
+#
+# That publishes one check per language: `codeql / CodeQL (rust)` and so on.
+#
+# `languages` is comma- or space-separated. Each entry is a CodeQL language,
+# optionally with its own build mode as `language:mode`:
+#
+#   actions  c-cpp  csharp  go  java-kotlin  javascript-typescript
+#   python  ruby  rust  swift
+#
+# Aliases: javascript, typescript, js, ts -> javascript-typescript;
+# java, kotlin -> java-kotlin; c, cpp -> c-cpp.
+#
+# Build modes: `none` (the default; analyses source without building it) and
+# `autobuild`. go and swift do not support `none`: write `go:autobuild`.
+# `manual` needs the repository's own build steps between init and analyze,
+# which a reusable workflow cannot take, so a language that needs it belongs
+# in the repository's own CodeQL workflow.
+#
+# `paths` and `paths-ignore` (newline-separated globs) narrow what is
+# analysed. They apply to interpreted languages and to build-mode `none`;
+# for compiled languages built with `autobuild`, CodeQL analyses what the
+# build compiles.
+#
+# Two things the CALLER'S repository must have, or the upload fails:
+#
+# - CodeQL DEFAULT setup switched OFF (Settings -> Code security -> Code
+#   scanning). GitHub rejects advanced-setup results while default setup is
+#   on.
+# - For a PRIVATE repository, GitHub Code Security (Advanced Security).
+#   Public repositories have code scanning free.
+#
+# No secret is needed. Results go to the repository's Security tab; a
+# finding does not fail the job. To block merges on findings, add a
+# code-scanning merge-protection rule ("Require code scanning results") to
+# the ruleset, which is the setting that reads these results.
+
+name: Reusable / CodeQL
+
+on:
+  workflow_call:
+    inputs:
+      languages:
+        description: Comma- or space-separated CodeQL languages, each optionally `language:build-mode` (see header).
+        type: string
+        required: true
+      build-mode:
+        description: Build mode for languages that name none (none or autobuild).
+        type: string
+        default: none
+      paths:
+        description: Newline-separated globs to analyse. Empty means the whole repository.
+        type: string
+        default: ''
+      paths-ignore:
+        description: Newline-separated globs to leave out of the analysis.
+        type: string
+        default: ''
+      queries:
+        description: CodeQL query suites to run in addition to the default suite.
+        type: string
+        default: security-extended
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      config: ${{ steps.plan.outputs.config }}
+    steps:
+      - name: Build the language matrix and the CodeQL config
+        id: plan
+        env:
+          LANGUAGES: ${{ inputs.languages }}
+          DEFAULT_MODE: ${{ inputs.build-mode }}
+          PATHS: ${{ inputs.paths }}
+          PATHS_IGNORE: ${{ inputs.paths-ignore }}
+        run: |
+          set -euo pipefail
+          set -f  # the split below must not glob
+          valid_mode() {
+            case "$1" in
+              none|autobuild) ;;
+              manual)
+                echo "::error::build-mode 'manual' needs build steps a reusable workflow cannot take. Use the repo's own CodeQL workflow."
+                exit 1
+                ;;
+              *) echo "::error::Unknown build mode '$1'. Use none or autobuild."; exit 1 ;;
+            esac
+          }
+          valid_mode "$DEFAULT_MODE"
+          entries=()
+          seen=" "
+          for raw in ${LANGUAGES//,/ }; do
+            lang="${raw%%:*}"
+            mode="$DEFAULT_MODE"
+            [ "$lang" = "$raw" ] || mode="${raw#*:}"
+            case "${lang,,}" in
+              javascript|typescript|js|ts|javascript-typescript) lang=javascript-typescript ;;
+              java|kotlin|java-kotlin) lang=java-kotlin ;;
+              c|cpp|c-cpp) lang=c-cpp ;;
+              actions|csharp|go|python|ruby|rust|swift) lang="${lang,,}" ;;
+              *) echo "::error::Unknown CodeQL language '$lang'."; exit 1 ;;
+            esac
+            valid_mode "$mode"
+            case "$seen" in *" $lang "*) continue ;; esac
+            seen="$seen$lang "
+            runner=ubuntu-latest
+            [ "$lang" = swift ] && runner=macos-latest
+            entries+=("$(jq -cn --arg l "$lang" --arg m "$mode" --arg r "$runner" '{language: $l, "build-mode": $m, runner: $r}')")
+          done
+          if [ "${#entries[@]}" -eq 0 ]; then
+            echo "::error::No language given. Set the 'languages' input, for example 'rust, javascript-typescript'."
+            exit 1
+          fi
+          matrix=$(printf '%s\n' "${entries[@]}" | jq -cs .)
+          lines() { printf '%s\n' "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' | jq -R . | jq -cs .; }
+          config=$(jq -cn --argjson p "$(lines "$PATHS")" --argjson i "$(lines "$PATHS_IGNORE")" \
+            '{} + (if ($p | length) > 0 then {paths: $p} else {} end) + (if ($i | length) > 0 then {"paths-ignore": $i} else {} end)')
+          [ "$config" != "{}" ] || config=""
+          { echo "matrix=$matrix"; echo "config=$config"; } >> "$GITHUB_OUTPUT"
+          echo "Languages: $matrix"
+          echo "Config: ${config:-(none)}"
+
+  analyze:
+    name: CodeQL (${{ matrix.language }})
+    needs: plan
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2  # v4.38.2
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: ${{ inputs.queries }}
+          config: ${{ needs.plan.outputs.config }}
+      - if: matrix.build-mode == 'autobuild'
+        uses: github/codeql-action/autobuild@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2  # v4.38.2
+      - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2  # v4.38.2
+        with:
+          category: /language:${{ matrix.language }}
