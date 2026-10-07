@@ -1,0 +1,58 @@
+# Shift-left security for one repository (mzizi-dev/mzizi#62): dependency
+# review on pull requests, a dependency audit per ecosystem, and CodeQL.
+# Copy this file to .github/workflows/security.yml, then edit the two
+# `with:` blocks marked EDIT to match the repository.
+#
+# The checks it publishes:
+#
+#   dependency-review / dependency review
+#   audit / cargo deny          (when ecosystems includes rust)
+#   audit / osv-scanner         (when ecosystems includes js)
+#   codeql / CodeQL (<language>), one per language
+#
+# Before the first run, switch CodeQL DEFAULT setup off for the repository
+# (Settings -> Code security -> Code scanning): GitHub rejects these results
+# while it is on. A private repository needs GitHub Code Security for
+# dependency review and CodeQL.
+
+name: Security
+
+on:
+  push:
+    branches: [$default-branch, staging]
+  pull_request:
+  merge_group:
+  schedule:
+    # Weekly, because an advisory can land against a dependency already here.
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  dependency-review:
+    uses: mukoko-dev/.github/.github/workflows/reusable-dependency-review.yml@main
+
+  audit:
+    uses: mukoko-dev/.github/.github/workflows/reusable-dependency-audit.yml@main
+    with:
+      # EDIT: keep the ecosystems this repository has, and point at them.
+      ecosystems: rust, js
+      rust-manifests: Cargo.toml
+      js-paths: .
+
+  codeql:
+    uses: mukoko-dev/.github/.github/workflows/reusable-codeql.yml@main
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    with:
+      # EDIT: the languages this repository is written in. `actions` scans
+      # the workflow files themselves.
+      languages: rust, javascript-typescript, actions
