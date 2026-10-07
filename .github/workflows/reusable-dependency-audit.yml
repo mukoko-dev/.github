@@ -1,0 +1,286 @@
+# Reusable workflow: dependency audit per ecosystem (mzizi-dev/mzizi#62, the
+# CI layer of shift-left security).
+#
+# Where reusable-dependency-review.yml asks "does this pull request ADD a
+# vulnerable dependency?", this asks "is what this repository depends on
+# TODAY acceptable?". It audits the whole tree, not a diff, so it belongs on
+# push and on a schedule as well as on pull requests: an advisory can be
+# published against a dependency the repository already has, with no change
+# here at all.
+#
+# Ecosystems (the `ecosystems` input, comma- or space-separated):
+#
+#   rust  cargo deny, against each manifest in `rust-manifests`, with the
+#         caller's `deny-config` (advisories, bans, licences, sources). With
+#         no deny.toml there is nothing to judge licences or sources against,
+#         so only advisories are checked and the job warns.
+#   js    osv-scanner, against every JS lockfile (package-lock.json,
+#         npm-shrinkwrap.json, pnpm-lock.yaml, yarn.lock, bun.lock) found
+#         directly in each directory listed in `js-paths`. Ignores go in an
+#         osv-scanner.toml next to the lockfile.
+#
+# Each selected ecosystem is its own job, so the checks are
+# `<caller job> / cargo deny` and `<caller job> / osv-scanner`. A selected
+# ecosystem with nothing to audit (a missing manifest, no lockfile) FAILS:
+# a gate that inspects nothing must not pass.
+#
+# Call it from a workflow in the consuming repository:
+#
+#   on:
+#     push:
+#       branches: [main, staging]
+#     pull_request:
+#     schedule:
+#       - cron: '17 6 * * 1'
+#   permissions:
+#     contents: read
+#   jobs:
+#     audit:
+#       uses: mukoko-dev/.github/.github/workflows/reusable-dependency-audit.yml@main
+#       with:
+#         ecosystems: rust, js
+#         rust-manifests: |
+#           Cargo.toml
+#           tools/bench/Cargo.toml
+#         js-paths: |
+#           .
+#           web
+#
+# Both tools are release binaries checked against a SHA-256 pinned HERE, not
+# one downloaded next to the binary, so a replaced release asset fails the
+# job instead of being trusted. To move a version, change the version and
+# the hash together. No secret is needed; the token is read-only and the
+# checkout keeps no credentials. Both tools fetch advisory data from the
+# network (the RustSec database from GitHub, OSV from api.osv.dev).
+
+name: Reusable / Dependency audit
+
+on:
+  workflow_call:
+    inputs:
+      ecosystems:
+        description: Comma- or space-separated ecosystems to audit. Supported - rust, js.
+        type: string
+        required: true
+      rust-manifests:
+        description: Newline-separated Cargo.toml paths to audit with cargo deny.
+        type: string
+        default: Cargo.toml
+      deny-config:
+        description: Path to the cargo-deny config, used for every manifest.
+        type: string
+        default: deny.toml
+      cargo-deny-checks:
+        description: Space-separated cargo deny checks (advisories, bans, licenses, sources). Empty means all.
+        type: string
+        default: ''
+      js-paths:
+        description: Newline-separated directories whose JS lockfiles osv-scanner audits.
+        type: string
+        default: .
+      cargo-deny-version:
+        description: cargo-deny release to install. Change together with cargo-deny-sha256.
+        type: string
+        default: 0.20.2
+      cargo-deny-sha256:
+        description: SHA-256 of cargo-deny-<version>-x86_64-unknown-linux-musl.tar.gz.
+        type: string
+        default: 9f12ed4c49936e09b48bf862b595cde2fe64fcbd9d74dfacac6131ca824c8d5f
+      osv-scanner-version:
+        description: osv-scanner release to install (without the leading v). Change together with osv-scanner-sha256.
+        type: string
+        default: 2.6.0
+      osv-scanner-sha256:
+        description: SHA-256 of osv-scanner_linux_amd64 for that release.
+        type: string
+        default: ca69b3d3cd08f889a49dc0a383122f71cc528b83803671df5fd874d97485b108
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    outputs:
+      rust: ${{ steps.pick.outputs.rust }}
+      js: ${{ steps.pick.outputs.js }}
+    steps:
+      - name: Choose the ecosystems
+        id: pick
+        env:
+          ECOSYSTEMS: ${{ inputs.ecosystems }}
+        run: |
+          set -euo pipefail
+          set -f  # the split below must not glob
+          rust=false
+          js=false
+          for e in ${ECOSYSTEMS//,/ }; do
+            case "${e,,}" in
+              rust|cargo) rust=true ;;
+              js|javascript|typescript|node|npm|pnpm|yarn|bun) js=true ;;
+              *) echo "::error::Unknown ecosystem '$e'. Supported: rust, js."; exit 1 ;;
+            esac
+          done
+          if [ "$rust" = false ] && [ "$js" = false ]; then
+            echo "::error::No ecosystem selected. Set the 'ecosystems' input, for example 'rust, js'."
+            exit 1
+          fi
+          { echo "rust=$rust"; echo "js=$js"; } >> "$GITHUB_OUTPUT"
+
+  cargo-deny:
+    name: cargo deny
+    needs: plan
+    if: needs.plan.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install cargo-deny
+        env:
+          VERSION: ${{ inputs.cargo-deny-version }}
+          SHA256: ${{ inputs.cargo-deny-sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Unexpected cargo-deny version '$VERSION'."; exit 1; }
+          [[ "$SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::cargo-deny-sha256 must be 64 lowercase hex characters."; exit 1; }
+          dir=$(mktemp -d)
+          name="cargo-deny-${VERSION}-x86_64-unknown-linux-musl"
+          curl -sSfL --retry 3 -o "$dir/$name.tar.gz" \
+            "https://github.com/EmbarkStudios/cargo-deny/releases/download/${VERSION}/${name}.tar.gz"
+          echo "${SHA256}  $dir/$name.tar.gz" | sha256sum --check --strict
+          tar -xzf "$dir/$name.tar.gz" -C "$dir"
+          sudo install -m 0755 "$dir/$name/cargo-deny" /usr/local/bin/cargo-deny
+          cargo-deny --version
+
+      - name: cargo deny check
+        env:
+          MANIFESTS: ${{ inputs.rust-manifests }}
+          CONFIG: ${{ inputs.deny-config }}
+          CHECKS: ${{ inputs.cargo-deny-checks }}
+        run: |
+          set -uo pipefail
+          summary() { printf '%s\n' "$1" >> "$GITHUB_STEP_SUMMARY"; }
+          read -r -a checks <<< "$CHECKS"
+          for c in "${checks[@]}"; do
+            case "$c" in
+              advisories|bans|licenses|sources|all) ;;
+              *) echo "::error::Unknown cargo deny check '$c'."; exit 1 ;;
+            esac
+          done
+          cfg=()
+          if [ -n "$CONFIG" ] && [ -f "$CONFIG" ]; then
+            cfg=(--config "$CONFIG")
+          else
+            echo "::warning::No cargo-deny config at '$CONFIG': checking advisories only. Add a deny.toml for bans, licences, sources."
+            checks=(advisories)
+          fi
+          summary "### cargo deny"
+          summary ""
+          summary "| Manifest | Result |"
+          summary "|---|---|"
+          failed=0
+          audited=0
+          while IFS= read -r m; do
+            m="${m#"${m%%[![:space:]]*}"}"
+            m="${m%"${m##*[![:space:]]}"}"
+            [ -n "$m" ] || continue
+            if [ ! -f "$m" ]; then
+              echo "::error::Manifest '$m' does not exist."
+              summary "| \`$m\` | **missing** |"
+              failed=1
+              continue
+            fi
+            audited=$((audited + 1))
+            echo "::group::cargo deny check: $m"
+            if cargo-deny --manifest-path "$m" "${cfg[@]}" check "${checks[@]}"; then
+              summary "| \`$m\` | pass |"
+            else
+              failed=1
+              echo "::error file=$m::cargo deny reported a problem with this manifest's dependency graph."
+              summary "| \`$m\` | **fail** |"
+            fi
+            echo "::endgroup::"
+          done <<< "$MANIFESTS"
+          if [ "$audited" -eq 0 ] && [ "$failed" -eq 0 ]; then
+            echo "::error::No manifest to audit. Set the 'rust-manifests' input."
+            exit 1
+          fi
+          exit "$failed"
+
+  osv-scanner:
+    name: osv-scanner
+    needs: plan
+    if: needs.plan.outputs.js == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install osv-scanner
+        env:
+          VERSION: ${{ inputs.osv-scanner-version }}
+          SHA256: ${{ inputs.osv-scanner-sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Unexpected osv-scanner version '$VERSION'."; exit 1; }
+          [[ "$SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::osv-scanner-sha256 must be 64 lowercase hex characters."; exit 1; }
+          dir=$(mktemp -d)
+          curl -sSfL --retry 3 -o "$dir/osv-scanner" \
+            "https://github.com/google/osv-scanner/releases/download/v${VERSION}/osv-scanner_linux_amd64"
+          echo "${SHA256}  $dir/osv-scanner" | sha256sum --check --strict
+          sudo install -m 0755 "$dir/osv-scanner" /usr/local/bin/osv-scanner
+          osv-scanner --version
+
+      - name: osv-scanner on the JS lockfiles
+        env:
+          PATHS: ${{ inputs.js-paths }}
+        run: |
+          set -uo pipefail
+          lockfiles=()
+          while IFS= read -r d; do
+            d="${d#"${d%%[![:space:]]*}"}"
+            d="${d%"${d##*[![:space:]]}"}"
+            [ -n "$d" ] || continue
+            [ -d "$d" ] || { echo "::error::Directory '$d' in js-paths does not exist."; exit 1; }
+            found=0
+            for n in package-lock.json npm-shrinkwrap.json pnpm-lock.yaml yarn.lock bun.lock; do
+              if [ -f "$d/$n" ]; then
+                lockfiles+=("$d/$n")
+                found=1
+              fi
+            done
+            [ "$found" -eq 1 ] || echo "::warning::No JS lockfile in '$d'."
+          done <<< "$PATHS"
+          if [ "${#lockfiles[@]}" -eq 0 ]; then
+            echo "::error::No JS lockfile in js-paths, so nothing to audit. Commit the lockfile, or drop 'js' from 'ecosystems'."
+            exit 1
+          fi
+          args=()
+          for l in "${lockfiles[@]}"; do args+=(--lockfile "$l"); done
+          {
+            echo "### osv-scanner"
+            echo ""
+            printf -- '- `%s`\n' "${lockfiles[@]}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Actions runs this under `bash -e`, so the exit code is caught here.
+          rc=0
+          osv-scanner scan source "${args[@]}" || rc=$?
+          case "$rc" in
+            0) echo "No known vulnerability in the scanned lockfiles." >> "$GITHUB_STEP_SUMMARY" ;;
+            1) echo "::error::osv-scanner found known vulnerabilities. Upgrade, or ignore with a reason in osv-scanner.toml."
+               echo "**Known vulnerabilities found** - see the job log." >> "$GITHUB_STEP_SUMMARY" ;;
+            *) echo "::error::osv-scanner failed (exit $rc) before it could report." ;;
+          esac
+          exit "$rc"
