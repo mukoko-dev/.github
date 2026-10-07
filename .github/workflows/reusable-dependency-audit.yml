@@ -272,7 +272,7 @@ jobs:
           {
             echo "### osv-scanner"
             echo ""
-            printf -- '- `%s`\n' "${lockfiles[@]}"
+            printf -- "- \`%s\`\n" "${lockfiles[@]}"
           } >> "$GITHUB_STEP_SUMMARY"
           # Actions runs this under `bash -e`, so the exit code is caught here.
           rc=0

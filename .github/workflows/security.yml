@@ -5,7 +5,9 @@
 #
 # There is no dependency audit here: this repository has no Cargo.toml and
 # no JS lockfile, and the audit fails on purpose when it has nothing to
-# audit. CodeQL scans the workflow files (`actions`).
+# audit. There is no CodeQL job either: CodeQL default setup is on for this
+# repository and already scans its workflows, and GitHub rejects
+# advanced-setup results while default setup is on.
 
 name: Security
 
@@ -28,12 +30,3 @@ concurrency:
 jobs:
   dependency-review:
     uses: ./.github/workflows/reusable-dependency-review.yml
-
-  codeql:
-    uses: ./.github/workflows/reusable-codeql.yml
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    with:
-      languages: actions
