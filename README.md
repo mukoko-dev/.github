@@ -44,20 +44,89 @@ meant to avoid.
 
 Only add a workflow file here when the behaviour genuinely differs from the
 shared one. If you ever do copy a reusable workflow into this org, say so in
-the PR and record why, so the divergence is deliberate and visible.
+the PR and record why, so the divergence is deliberate and visible. The
+shift-left security workflows below are the one such case so far.
 
 What this repository does hold, in `.github/workflows/`, is the org-required
-lint workflow and three thin callers that also apply to this repository
-itself:
+lint workflow, the shift-left security reusables, and thin callers that also
+apply to this repository itself:
 
-| File                | Name       | Trigger                                                       |
-| ------------------- | ---------- | ------------------------------------------------------------- |
-| `org-lint.yml`      | `Org lint` | Every pull request in every `mukoko-dev` repository           |
-| `lint.yml`          | `Lint`     | Pull requests, and pushes to `main`/`master`/`scaffold`       |
-| `pr-title-lint.yml` | `PR title` | `pull_request_target` — opened, edited, reopened, synchronize |
-| `stale.yml`         | `Stale`    | Daily at 01:23 UTC, and `workflow_dispatch`                   |
+| File                             | Name                           | Trigger                                                       |
+| -------------------------------- | ------------------------------ | ------------------------------------------------------------- |
+| `org-lint.yml`                   | `Org lint`                     | Every pull request in every `mukoko-dev` repository           |
+| `lint.yml`                       | `Lint`                         | Pull requests, and pushes to `main`/`master`/`scaffold`       |
+| `pr-title-lint.yml`              | `PR title`                     | `pull_request_target` — opened, edited, reopened, synchronize |
+| `stale.yml`                      | `Stale`                        | Daily at 01:23 UTC, and `workflow_dispatch`                   |
+| `security.yml`                   | `Security`                     | This repository: PRs, pushes, weekly                          |
+| `reusable-dependency-review.yml` | `Reusable / Dependency review` | `workflow_call`                                               |
+| `reusable-dependency-audit.yml`  | `Reusable / Dependency audit`  | `workflow_call`                                               |
+| `reusable-codeql.yml`            | `Reusable / CodeQL`            | `workflow_call`                                               |
 
 [hub]: https://github.com/nyuchi/.github/tree/main/.github/workflows
+
+## Shift-left security
+
+The CI layer of the shift-left plan in
+[mzizi-dev/mzizi#62](https://github.com/mzizi-dev/mzizi/issues/62). Three
+reusable workflows, each with least-privilege permissions, actions pinned to
+a commit, no secrets, and tool binaries checked against a SHA-256 pinned in
+the workflow:
+
+| Workflow                         | What it answers                                                                                                                                                | Inputs                                                                                                      |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `reusable-dependency-review.yml` | Does this pull request **add** a dependency with a known advisory? Every ecosystem in GitHub's dependency graph at once. Passes with a notice on other events. | `fail-on-severity` (default `low`), `fail-on-scopes`, `allow-ghsas`, `config-file`                          |
+| `reusable-dependency-audit.yml`  | Is what the repository depends on **today** acceptable? `rust`: `cargo deny check` per manifest. `js`: `osv-scanner` per lockfile. Fails if it finds nothing.  | `ecosystems`, `rust-manifests`, `deny-config`, `cargo-deny-checks`, `js-paths`, tool pins                   |
+| `reusable-codeql.yml`            | Static analysis, one job per language, results in the Security tab.                                                                                            | `languages` (e.g. `rust, javascript-typescript, actions`), `build-mode`, `paths`, `paths-ignore`, `queries` |
+
+Each file's header documents its inputs in full. The minimal caller, which
+also appears as **Shift-left security** under Actions → New workflow in
+every `mukoko-dev` repository, is
+[`workflow-templates/security.yml`](workflow-templates/security.yml):
+
+```yaml
+jobs:
+  dependency-review:
+    uses: mukoko-dev/.github/.github/workflows/reusable-dependency-review.yml@main
+  audit:
+    uses: mukoko-dev/.github/.github/workflows/reusable-dependency-audit.yml@main
+    with:
+      ecosystems: rust
+  codeql:
+    uses: mukoko-dev/.github/.github/workflows/reusable-codeql.yml@main
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    with:
+      languages: rust, actions
+```
+
+Run it on `pull_request`, `merge_group`, `push` to the default branch and
+`staging`, and a weekly `schedule` (the template does all four). Before the
+first run, switch CodeQL **default** setup off in the repository, or GitHub
+rejects the results; a private repository also needs GitHub Code Security
+for dependency review and CodeQL.
+
+**Who can call them.** This repository is **public**, so any repository in
+any organisation can call these workflows, private callers included:
+`mukoko-dev`, `mzizi-dev`, `bundu-labs` and `nyuchi` alike. What does
+**not** cross organisations is enforcement: a `mukoko-dev` org ruleset can
+require these checks only in `mukoko-dev` repositories. To require them in
+`mzizi-dev`, that org's own ruleset must name them, or an enterprise ruleset
+must.
+
+**Why here and not in `nyuchi/.github`.** The shared library already has
+`reusable-codeql.yml`, `reusable-dependency-review.yml`, and the
+enterprise-required `dependency-review.yml` (diff-aware review plus
+`npm`/`pnpm`/`cargo audit`/`pip-audit` on changed lockfiles). These differ on
+purpose: the review needs only `contents: read` (no PR comment, so it works
+on forks) and fails from `low` severity; the audit checks the **whole**
+dependency tree on push and schedule, not just changed lockfiles, with
+`cargo deny` (licences, bans and sources too, not only advisories) and
+`osv-scanner`; CodeQL takes a plain language list, per-language build modes,
+`paths`/`paths-ignore`, and drops `packages: read`. If they prove out, the
+next step is to upstream them to `nyuchi/.github` and turn these into thin
+pointers, as `mzizi-dev/mzizi-registry` did for Vite+.
 
 ## Lint is required org-wide
 
