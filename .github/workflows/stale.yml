@@ -13,4 +13,4 @@ permissions:
 
 jobs:
   stale:
-    uses: nyuchi/.github/.github/workflows/reusable-stale.yml@main
+    uses: nyuchi/.github/.github/workflows/reusable-stale.yml@bb87d28e55c0c3c385121113900b698eb6ce8ab2  # v0.5.0
