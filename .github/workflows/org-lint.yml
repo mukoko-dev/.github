@@ -37,12 +37,12 @@ permissions:
 
 jobs:
   lint:
-    uses: nyuchi/.github/.github/workflows/reusable-lint.yml@c2e2506a4eadf67fbf824b41720aa220c539fc21  # v0.7.0
+    uses: nyuchi/.github/.github/workflows/reusable-lint.yml@925d067322defd676dacd90f2c2b0540cb10f644  # v0.11.1
     with:
       prettier: false
       json-validity: false
   vite-plus:
-    uses: nyuchi/.github/.github/workflows/reusable-vite-plus.yml@c2e2506a4eadf67fbf824b41720aa220c539fc21  # v0.7.0
+    uses: nyuchi/.github/.github/workflows/reusable-vite-plus.yml@925d067322defd676dacd90f2c2b0540cb10f644  # v0.11.1
 
   # Every pull request names the issue it serves. A closing keyword (Closes,
   # Fixes, Resolves) makes GitHub close the issue when the PR merges into the
