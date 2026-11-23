@@ -101,8 +101,8 @@ jobs:
       languages: rust, actions
 ```
 
-Run it on `pull_request`, `merge_group`, `push` to the default branch and
-`staging`, and a weekly `schedule` (the template does all four). Before the
+Run it on `pull_request`, `merge_group`, `push` to the default branch, and a
+weekly `schedule` (the template does all four). Before the
 first run, switch CodeQL **default** setup off in the repository, or GitHub
 rejects the results; a private repository also needs GitHub Code Security
 for dependency review and CodeQL.
