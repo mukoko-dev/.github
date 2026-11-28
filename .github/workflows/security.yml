@@ -13,7 +13,7 @@ name: Security
 
 on:
   push:
-    branches: [main, staging]
+    branches: [main]
   pull_request:
   merge_group:
   schedule:
